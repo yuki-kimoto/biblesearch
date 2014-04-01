@@ -13,6 +13,9 @@ has 'dbi';
 sub startup {
   my $self = shift;
   
+  # Config
+  $self->plugin('Config');
+  
   # DBI
   my $db_file = $self->home->rel_file('db/bible.db');
   my $dbi = DBIx::Custom->connect(
