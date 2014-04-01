@@ -1,0 +1,8 @@
+log/*
+!log/.gitignore
+script/hypnotoad.pid
+!public/.gitignore
+script/hypnotoad.pid
+extlib/*
+public/api/*
+tmp/*

@@ -1,0 +1,249 @@
+<%
+  my $dbi = app->dbi;
+  my $books = $dbi->model('book')->select(['id', 'short_name'])->all;
+%>
+
+
+% layout 'common';
+
+%= javascript begin
+  $(document).ready(function () {
+  
+    var current_word;
+    var current_book_id;
+    var found_book_ids = [];
+    var max_search_pos;
+    var current_word_count_h;
+    var current_pos;
+    var keep_current_pos = false;
+    
+    var timer = false;
+    $(window).resize(function() {
+      if ($(window).height() > 500) {
+        $('#content').css('height', ($(window).height() - 130) + 'px');
+      }
+    });
+
+    $(window).trigger('resize');
+    
+    $("#word-pos").text('-');
+    
+    $("#up-arrow").on('click', function () {
+      if (current_pos) {
+        var prev_pos = current_pos - 1;
+        
+        if (prev_pos < 1) {
+          var prev_book_id;
+          for (var i = 0; i < found_book_ids.length; i++) {
+            if (found_book_ids[i] === current_book_id) {
+              prev_book_id = found_book_ids[i - 1];
+            }
+          }
+          if (prev_book_id) {
+            current_pos = current_word_count_h[prev_book_id];
+            keep_current_pos = true;
+            $('#books tr[id=book-' + prev_book_id + ']').find('.book').trigger('click');
+          }
+        } else {
+          location.href = '#word-' + prev_pos;
+          scroll_little_up ();
+          current_pos--;
+          $('#word-pos').text(prev_pos);
+        }
+      }
+    });
+
+    $("#down-arrow").on('click', function () {
+      if (current_pos) {
+        var next_pos = current_pos - 0 + 1;
+        
+        if (next_pos > max_search_pos) {
+          var next_book_id;
+          for (var i = 0; i < found_book_ids.length; i++) {
+            if (found_book_ids[i] === current_book_id) {
+              next_book_id = found_book_ids[i + 1];
+            }
+          }
+          if (next_book_id) {
+            current_pos = 1;
+            keep_current_pos = true;
+            $('#books tr[id=book-' + next_book_id + ']').find('.book').trigger('click');
+          }
+        }
+        else {
+          location.href = '#word-' + next_pos;
+          scroll_little_up();
+          current_pos++;
+          $('#word-pos').text(next_pos);
+        }
+      }
+    });
+    
+    // 書をクリック
+    $('.book').on('click', function () {
+      var book_id_str = $(this).attr('id');
+      var ret = book_id_str.match(/book-(\d+)/);
+      var book_id = ret[1];
+      
+      $.get('/api/book/' + book_id + '/content.json', function (result) {
+
+        if (current_word) {
+          var i = 1;
+          var replace_cb = function (all, group1) {
+            var after = '<a style="background:#00ffff" id="word-' + i + '">' + group1 + '</a>';
+            i = i + 1;
+            return after;
+          };
+
+          var word_re = new RegExp('(' + current_word + ')', 'g');
+          result.content = result.content.replace(word_re, function (all, group1) { return replace_cb(all, group1); });
+          max_search_pos = i - 1;
+        }
+        
+        $("#content").html(result.content);
+        current_book_id = book_id;
+        
+        $('#books tr').each(function () {
+          var book_id_str = $(this).attr('id');
+          if (book_id_str) {
+            var book_id = (book_id_str.match(/book-(\d+)/))[1];
+            if (book_id === current_book_id) {
+              $(this).find('.book-short-name').css('background', '#DDDDDD');
+            }
+            else {
+              $(this).find('.book-short-name').css('background', '#FFFFFF');
+            }
+          }
+        });
+        
+        if (current_word) {
+          if (!keep_current_pos || !current_pos) {
+            current_pos = 1;
+          }
+          $('#word-pos').text(current_pos);
+          location.href = '#word-' + current_pos;
+          scroll_little_up();
+        }
+        keep_current_pos = false;
+      });
+    });
+    
+    // 検索をクリック
+    $('#search').on('click', function () {
+      var word = $(this).closest('div').find('[name=word]').val();
+      
+      if (word) {
+        var word_count_h;
+        $.get('/api/word-count/' + word, function (result) {
+          var word_count_h = result.word_count;
+          current_word_count_h = word_count_h;
+
+          $('#books tr').each(function () {
+            var book_id_str = $(this).attr('id');
+            if (book_id_str) {
+              var book_id = (book_id_str.match(/book-(\d+)/))[1];
+              if (word_count_h[book_id] === 0) {
+                $(this).css('display', 'none');
+              }
+              else {
+                found_book_ids.push(book_id);
+                $(this).css('display', '');
+              }
+              $(this).find('.word-count').text(word_count_h[book_id]);
+            }
+          });
+          $('#word-count-header').text('回数');
+          
+          current_word = word;
+          
+          $('#up-down').css('display', 'inline');
+        });
+        
+      }
+      
+      return false;
+    });
+    
+    // Enterで検索
+    $('[name=word]').bind('keypress', function (e) {
+      if (e.keyCode === 13) {
+        $('#search').trigger('click');
+      }
+    });
+    
+    // 少し上へスクロール
+    function scroll_little_up () {
+      var current_scroll_top = $('#content').scrollTop();
+      $('#content').scrollTop(current_scroll_top - 70);
+    }
+  });
+% end
+
+<div id="container">
+
+  <div id="header">
+    <h1>口語訳聖書オンライン語句検索</h1>
+  </div>
+
+  <div id="side">
+      <div style="margin-bottom:5px">
+        <input type="text" name="word", style = "width:160px">
+        <button id="search" style="width:50px;padding:2px;">検索</button>
+      </div>
+      <div style="margin-bottom:10px;">
+        <table style="border-collapse: collapse;width:100%;color:#333333">
+          <tr>
+            <td style="width:90px;height:25px;">
+              <a href="<%= url_for('/') %>" style="color:blue">聖書</a>
+            </td>
+            <td>
+              <span id="up-down" style="display:none">
+                <a id="up-arrow" href="javascript:void(0)">▲</a>
+                <div id="word-pos" style="display:inline-block;border:1px solid #DDDDDD;padding:2px 5px;width:35px;text-align:center">
+                </div>
+                <a id="down-arrow" href="javascript:void(0)">▼</a>
+              </span>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div style="border:1px solid gray;width:218px;height:300px;overflow:auto;padding:5px">
+        <table id="books" style="border-collapse: collapse;width:100%;color:#333333">
+            <tr style="border-bottom:1px solid #EEEEEE">
+              <td>
+                書
+              </td>
+              <td id="word-count-header" style="text-align:right">
+              </td>
+            </tr>
+          % my $prev_book_id;
+          % for my $book (@$books) {
+            <tr id="<%= "book-$book->{id}" %>">
+              <td class="book-short-name">
+                <a class="book" id="<%= "book-$book->{id}" %>" href="javascript:void(0)">
+                  <%= $book->{short_name} %>
+                </a>
+              </td>
+              <td class="word-count" style="text-align:right">
+              </td>
+            </tr>
+          % }
+        </table>
+      </div>
+  </div>
+
+  <div id="main">
+    <div id="content">
+    </div>
+  </div>
+
+
+  <div id="footer">
+    <div id="footer-content">
+      This site is create by
+      <a href="http://d.hatena.ne.jp/perlcodesample">Perl</a> +
+      <a href="http://d.hatena.ne.jp/perlcodesample/20140319/1395203665">Mojolicious</a>.
+      Auther is <a href="https://twitter.com/yukikimoto2">Yuki kimoto</a>.
+    </div>
+  </div>
+</div>
