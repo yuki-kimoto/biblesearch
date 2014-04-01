@@ -182,7 +182,7 @@
 <div id="container">
 
   <div id="header">
-    <h1>口語訳聖書オンライン語句検索</h1>
+    <h1>口語訳聖書(1954/1955年版) オンライン語句検索</h1>
   </div>
 
   <div id="side">
@@ -245,6 +245,7 @@
       <a href="http://d.hatena.ne.jp/perlcodesample">Perl</a> +
       <a href="http://d.hatena.ne.jp/perlcodesample/20140319/1395203665">Mojolicious</a>.
       Auther is <a href="https://twitter.com/yukikimoto2">Yuki kimoto</a>.
+      (<a href="<%= url_for('/about') %>">このサイトについて</a>)
     </div>
   </div>
 </div>

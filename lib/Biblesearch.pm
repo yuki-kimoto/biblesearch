@@ -41,6 +41,7 @@ sub startup {
   # Route
   my $r = $self->routes;
   $r->get('/')->to(template => 'index');
+  $r->get('/about');
   $r->get('/api/book/:id/content.json')->to(cb => sub {
     my $self = shift;
     my $id = $self->param('id');
