@@ -159,6 +159,8 @@
           $('#up-down').css('display', 'inline');
         });
         
+        // 創世記をクリック
+        $('#books tr[id=book-01]').find('.book').trigger('click');
       }
       
       return false;
@@ -176,6 +178,9 @@
       var current_scroll_top = $('#content').scrollTop();
       $('#content').scrollTop(current_scroll_top - 70);
     }
+    
+    // 最初は創世記を表示
+    $('#books tr[id=book-01]').find('.book').trigger('click');
   });
 % end
 
