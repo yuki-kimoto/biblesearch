@@ -28,6 +28,7 @@
     
     $("#word-pos").text('-');
     
+    // 上へをクリック
     $("#up-arrow").on('click', function () {
       if (current_pos) {
         var prev_pos = current_pos - 1;
@@ -47,12 +48,15 @@
         } else {
           location.href = '#word-' + prev_pos;
           scroll_little_up ();
+          $('#word-' + current_pos).css('font-weight', '');
           current_pos--;
+          $('#word-' + current_pos).css('font-weight', 'bold');
           $('#word-pos').text(prev_pos);
         }
       }
     });
-
+    
+    // 下へをクリック
     $("#down-arrow").on('click', function () {
       if (current_pos) {
         var next_pos = current_pos - 0 + 1;
@@ -73,7 +77,10 @@
         else {
           location.href = '#word-' + next_pos;
           scroll_little_up();
+          $('#word-' + current_pos).css('font-weight', '');
           current_pos++;
+          $('#word-' + current_pos).css('font-weight', 'bold');
+          
           $('#word-pos').text(next_pos);
         }
       }
@@ -122,6 +129,7 @@
           }
           $('#word-pos').text(current_pos);
           location.href = '#word-' + current_pos;
+          $('#word-' + current_pos).css('font-weight', 'bold');
           scroll_little_up();
         }
         keep_current_pos = false;
@@ -135,6 +143,7 @@
       if (word) {
         var word_count_h;
         $.get('/api/word-count/' + word, function (result) {
+          found_book_ids = [];
           var word_count_h = result.word_count;
           current_word_count_h = word_count_h;
 
@@ -156,11 +165,14 @@
           
           current_word = word;
           
+          // 最初の書をクリック
+          if (found_book_ids.length !== 0) {
+            $('#books tr[id=book-' + found_book_ids[0] + ']').find('.book').trigger('click');
+          }
+          
           $('#up-down').css('display', 'inline');
         });
         
-        // 創世記をクリック
-        $('#books tr[id=book-01]').find('.book').trigger('click');
       }
       
       return false;
