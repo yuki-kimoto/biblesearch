@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>口語訳聖書オンライン語句検索</title>
+    <title>口語訳聖書(1954/1955年版) オンライン語句検索</title>
     <link rel="shortcut icon" href="<%= url_for('/favicon.png') %>" type="image/png" >
-    <meta name="description" content="口語訳聖書のオンラインの語句検索を行うためのサイトです。">
+    <meta name="description" content="著作権が切れた口語訳聖書(1954/1955年版)を使ってオンラインの語句検索を行うためのサイトです。">
     <meta name="keywords" content="口語訳聖書,著作権切れ,検索">
 
     %= javascript '/js/jquery-1.10.2.js';
